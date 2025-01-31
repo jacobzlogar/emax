@@ -4,7 +4,6 @@
 
 * About
 When cloning this repo, make sure to clone the submodules
-~git clone --recursive~
 
 * early-init.el
 
