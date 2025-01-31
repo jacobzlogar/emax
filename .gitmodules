@@ -1,0 +1,21 @@
+[submodule "packages/corfu"]
+	path = packages/corfu
+	url = https://github.com/minad/corfu.git
+[submodule "packages/compat"]
+	path = packages/compat
+	url = https://github.com/emacs-compat/compat.git
+[submodule "packages/vertico"]
+	path = packages/vertico
+	url = https://github.com/minad/vertico.git
+[submodule "packages/evil"]
+	path = packages/evil
+	url = https://github.com/emacs-evil/evil.git
+[submodule "packages/fontaine"]
+	path = packages/fontaine
+	url = https://github.com/protesilaos/fontaine
+[submodule "packages/ef-themes"]
+	path = packages/ef-themes
+	url = https://github.com/protesilaos/ef-themes.git
+[submodule "packages/eldoc-box"]
+	path = packages/eldoc-box
+	url = https://github.com/casouri/eldoc-box.git

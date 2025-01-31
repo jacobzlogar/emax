@@ -1,0 +1,7 @@
+projects
+.lsp-session-*
+projectile-bookmarks.eld
+bookmarks
+transient/
+tree-sitter/
+eshell/

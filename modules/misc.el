@@ -1,0 +1,5 @@
+  (setq org-src-window-setup 'current-window)
+  (setq org-src-tab-acts-natively t)
+  (setq org-src-preserve-indentation t)
+  (setq org-edit-src-content-indentation 0)
+  (add-hook 'org-mode-hook 'electric-indent-mode)
