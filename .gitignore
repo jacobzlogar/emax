@@ -5,3 +5,9 @@ bookmarks
 transient/
 tree-sitter/
 eshell/
+*.html
+.cache/
+.dap-breakpoints
+.extension/
+recentf
+url/

@@ -31,7 +31,8 @@
   ;;(load-theme 'ef-night :no-confirm)
 
   ;; OR use this to load the theme which also calls `ef-themes-post-load-hook':
-  (ef-themes-select 'ef-bio)
+  ;;(ef-themes-select 'ef-bio)
+  (load-theme 'doom-gruvbox)
 
   ;; The themes we provide are recorded in the `ef-themes-dark-themes',
   ;; `ef-themes-light-themes'.
@@ -54,6 +55,7 @@
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
+(winner-mode 1)
 (setq blink-cursor-mode nil)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
@@ -68,7 +70,8 @@
   (custom-set-faces
    `(eldoc-box-body ((t :family "Iosevka" :height 120)))
    `(eldoc-box-border ((t :background ,(face-attribute 'highlight :background))))
-   `(line-number ((t (:background ,bg-color))))))
+   `(line-number ((t (:background ,bg-color))))
+   `(fringe ((t (:background ,bg-color))))))
 
 (use-package kind-icon
   :ensure t

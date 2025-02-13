@@ -1,2 +1,2 @@
-;; (with-eval-after-load 'eglot
-;;   (define-key eglot-mode-map (kbd "") #'eldoc-box-quit-frame))
+(global-set-key (kbd "C-<tab>") #'evil-switch-to-windows-last-buffer)
+(evil-global-set-key 'motion (kbd "K") 'eldoc-doc-buffer)

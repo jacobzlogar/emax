@@ -1,3 +1,3 @@
-  (use-package winum
-    :init
-    (winum-mode))
+  ;; (use-package winum
+  ;;   :init
+  ;;   (winum-mode))

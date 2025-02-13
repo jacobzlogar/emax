@@ -9,14 +9,20 @@
   (package-install 'use-package))
 (eval-when-compile
   (require 'use-package))
-(setq backup-directory-alist
-      '(("." . "~/.emacs.d/backups")))
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
+(electric-pair-mode)
+(smartparens-mode)
 (add-to-list 'major-mode-remap-alist
 	     '(rustic-mode . rust-ts-mode)
 	     '(typescript-mode . typescript-ts-mode))
 
-(electric-pair-mode)
-(smartparens-mode)
+(setq delete-auto-save-files t)
+(setq create-lockfiles nil)
+(setq backup-directory-alist
+      '(("." . "~/.emacs.d/backups")))
+;; (setq auto-save-file-name-transforms
+;;       `(("." "~/.emacs.d/autosaves/" t)))
 
   ;; Example configuration for Consult
   (use-package consult
@@ -53,7 +59,7 @@
 	   ("M-g i" . consult-imenu)
 	   ("M-g I" . consult-imenu-multi)
 	   ;; M-s bindings in `search-map'
-	   ("C-a" . consult-fd)
+	   ("C-a" . project-find-file)
 	   ("M-s d" . consult-find)                  ;; Alternative: consult-fd
 	   ("M-s c" . consult-locate)
 	   ("M-s g" . consult-grep)
@@ -65,6 +71,8 @@
 	   ("M-s u" . consult-focus-lines)
 	   ;; Isearch integration
 	   ("M-s e" . consult-isearch-history)
+	   ("M-p a" . project-find-file)
+	   ("M-p f" . consult-recent-file)
 	   :map isearch-mode-map
 	   ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
 	   ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string

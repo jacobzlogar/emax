@@ -19,3 +19,9 @@
 [submodule "packages/eldoc-box"]
 	path = packages/eldoc-box
 	url = https://github.com/casouri/eldoc-box.git
+[submodule "packages/doom-modeline"]
+	path = packages/doom-modeline
+	url = https://github.com/seagle0128/doom-modeline.git
+[submodule "packages/dape"]
+	path = packages/dape
+	url = https://github.com/svaante/dape.git
