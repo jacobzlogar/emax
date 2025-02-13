@@ -7,13 +7,35 @@
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
-(defun nasm/compile (instr &optional bits asm)
-  (if (not bits)
-    (setq bits 16))
-  (let* ((temp-asm "/tmp/test.asm")
+(defun nasm/compile (instr &optional bits)
+  (let* ((bits (or bits 16))
+	 (temp-asm "/tmp/test.asm")
 	 (temp-binary "/tmp/test")
-	 (nasm (format "nasm %s -o %s | cat %s" temp-asm temp-binary temp-binary)))
+	 (cmd (format "nasm %s -o %s" temp-asm temp-binary)))
     (with-temp-file temp-asm
-      (insert (format "bits %s\n" bits))
-      (insert instr)
-      (shell-command-to-string nasm))))
+      (insert (format "bits %d\n" bits))
+      (insert instr))
+    (shell-command-to-string cmd)
+    (when (file-exists-p temp-binary)
+      (with-temp-buffer
+	(insert-file-contents-literally temp-binary)
+        (mapconcat (lambda (byte) (format "%02X" byte))
+                   (string-to-list (buffer-substring-no-properties (point-min) (point-max)))
+                   " ")))))
+
+(defun ce/gen_const/seg_instr ()
+  (interactive)
+  (let* ((segmentRegister (completing-read "segment register: " '(("ES") ("CS") ("SS") ("DS"))))
+	 (selectedMnemonic (completing-read "mnemonic: " '(("POP") ("PUSH"))))
+	 (wide (completing-read "wide: " '(("true") ("false"))))
+	 (const_name (format "pub const %s_%s: Instruction2 = Instruction2 {" selectedMnemonic segmentRegister))
+	 (mnemonic (format "mnemonic: Mnemonic::%s," selectedMnemonic))
+	 (operand (format "operand: Some(Operand::SegmentRegister { dest: SegmentRegister::%s })," segmentRegister))
+	 (wide (format "wide: %s," wide))
+	 (direction (format "direction: None"))
+	 (body (mapconcat (lambda (s) (concat "    " s)) (list mnemonic operand wide direction) "\n"))
+	 (message body)
+	 (with-temp-buffer
+	   (insert (format "%s\n%s\n};" const_name body))))))
+
+(setq org-html-postamble-format '(("en" "<p class=\"author\">%a (%e) </p>")))
