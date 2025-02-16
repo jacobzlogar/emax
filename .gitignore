@@ -11,3 +11,5 @@ eshell/
 .extension/
 recentf
 url/
+eln-cache
+tramp

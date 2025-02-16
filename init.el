@@ -132,7 +132,7 @@
 
   (use-package marginalia
     :ensure t
-    :config
+    :init
     (marginalia-mode))
 
 ;; Optionally use the `orderless' completion style.

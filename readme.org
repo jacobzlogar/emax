@@ -3,7 +3,10 @@
 #+email: jacob.zlogar@gmail.com
 
 * About
+
 When cloning this repo, make sure to clone the submodules
+
+[[./images/theme.png]]
 
 * early-init.el
 
@@ -85,11 +88,36 @@ Configure backup & auto save directories
 ;;       (user-error "No file found"))))
 #+end_src
 
-** doom modeline
-#+begin_src emacs-lisp :tangle "modules/doom-modeline.el"
-(use-package doom-modeline
-  :load-path "/packages/doom-modeline"
-  :init (doom-modeline-mode))
+** modeline
+#+begin_src emacs-lisp :tangle "modules/modeline.el"
+(setq mode-line-format nil)
+(kill-local-variable 'mode-line-format)
+(force-mode-line-update)
+
+(defface modeline/bold-shadow
+  `((t :inherit bold :foreground ,(face-foreground 'shadow)))
+  "Face for bold+shadow")
+
+(defvar modeline/symbol
+  (propertize "λ" 'face 'modeline/bold-shadow))
+
+(put 'modeline/symbol 'risky-local-variable-p t)
+
+(defun modeline/project ()
+  (project-root (project-current)))
+
+(defun modeline/padding (item &optional dir)
+  (cond ((eq dir 'left) (format " %s" item))
+        ((eq dir 'right) (format "%s " item))
+        (t (format " %s " item))))
+
+(setq-default mode-line-format
+	      '(
+		(:eval (modeline/padding modeline/symbol 'left))
+		(:eval (modeline/padding (modeline/project)))
+		(:eval (propertize "|" 'face 'modeline/bold-shadow))
+		(:eval (modeline/padding (buffer-name) 'left))
+		))
 #+end_src
 
 ** evil
@@ -311,7 +339,7 @@ Configure backup & auto save directories
 #+begin_src emacs-lisp :tangle "init.el"
   (use-package marginalia
     :ensure t
-    :config
+    :init
     (marginalia-mode))
 #+end_src
 
@@ -431,8 +459,7 @@ ty mr. Prot
   ;;(load-theme 'ef-night :no-confirm)
 
   ;; OR use this to load the theme which also calls `ef-themes-post-load-hook':
-  ;;(ef-themes-select 'ef-bio)
-  (load-theme 'doom-gruvbox)
+  (ef-themes-select 'ef-symbiosis)
 
   ;; The themes we provide are recorded in the `ef-themes-dark-themes',
   ;; `ef-themes-light-themes'.
@@ -480,9 +507,11 @@ org-mode face customizations
 
 ** misc
 #+begin_src emacs-lisp :tangle "modules/ui.el"
-(setq max-mini-window-height 0.3)
+(setq max-mini-window-height 1)
 (let ((bg-color (face-attribute 'default :background)))
   (custom-set-faces
+   `(flymake-error ((t :underline nil)))
+   ;; `(flymake-warning ((t :underline nil)))
    `(eldoc-box-body ((t :family "Iosevka" :height 120)))
    `(eldoc-box-border ((t :background ,(face-attribute 'highlight :background))))
    `(line-number ((t (:background ,bg-color))))
@@ -495,15 +524,15 @@ org-mode face customizations
 Am i even using this?
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
-(use-package kind-icon
-  :ensure t
-  :after corfu
-  ;:custom
-  ; (kind-icon-blend-background t)
-  ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
-  :config
-  (setq kind-icon-use-icons nil)
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+;; (use-package kind-icon
+;;   :ensure t
+;;   :after corfu
+;;   ;:custom
+;;   ; (kind-icon-blend-background t)
+;;   ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+;;   :config
+;;   (setq kind-icon-use-icons nil)
+;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 * keybindings
@@ -567,4 +596,15 @@ I should move these into more specific sections
 	   (insert (format "%s\n%s\n};" const_name body))))))
 
 (setq org-html-postamble-format '(("en" "<p class=\"author\">%a (%e) </p>")))
+#+end_src
+
+
+** web trash
+#+begin_src emacs-lisp :tangle "modules/vue.el"
+(define-derived-mode vue-mode web-mode "Vue Mode"
+  "Major mode for .vue files"
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-script-padding 0))
+
+(add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-mode))
 #+end_src

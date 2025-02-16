@@ -1,4 +1,4 @@
 (use-package marginalia
   :ensure t
-  :config
+  :init
   (marginalia-mode))
