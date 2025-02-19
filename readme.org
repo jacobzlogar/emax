@@ -103,21 +103,46 @@ Configure backup & auto save directories
 
 (put 'modeline/symbol 'risky-local-variable-p t)
 
+(defun modeline/file ()
+  (file-relative-name buffer-file-name (project-root (project-current))))
+
 (defun modeline/project ()
-  (project-root (project-current)))
+  (if (project-current)
+      (propertize (project-name (project-current)) 'face 'bold) ""))
+
+(defun modeline/vcs ()
+  (if (project-current)
+      (format "%s %s" (propertize "" 'face 'shadow) (vc-git--symbolic-ref (buffer-file-name))) ""))
+
+(defun modeline/mode ()
+  (symbol-name major-mode))
 
 (defun modeline/padding (item &optional dir)
   (cond ((eq dir 'left) (format " %s" item))
         ((eq dir 'right) (format "%s " item))
-        (t (format " %s " item))))
+        (t (format "%s" item))))
+
+(defun modeline/divider ()
+  (if (> (string-width (modeline/file) 0))
+      (propertize "|" 'face 'modeline/bold-shadow) ""))
+
+(defun modeline/eglot ()
+  (if (eglot-managed-p)
+      (propertize "ε" 'face 'modeline/bold-shadow) ""))
 
 (setq-default mode-line-format
-	      '(
-		(:eval (modeline/padding modeline/symbol 'left))
-		(:eval (modeline/padding (modeline/project)))
-		(:eval (propertize "|" 'face 'modeline/bold-shadow))
-		(:eval (modeline/padding (buffer-name) 'left))
-		))
+	      '((:eval (modeline/padding modeline/symbol 'left))
+		(:eval (modeline/padding (modeline/project) 'left))
+		(:eval (modeline/padding (modeline/divider) 'left))
+		(:eval (modeline/padding (modeline/file) 'left))
+		(:eval (modeline/padding (modeline/vcs) 'left))
+		"%+"
+		(:eval (modeline/padding (modeline/eglot) 'left))
+		(:eval (propertize
+			" " 'display
+			`((space :align-to (- (+ right right-fringe right-margin)
+					      ,(+ 2 (string-width (modeline/mode))))))))
+		(:eval (modeline/padding (modeline/mode) 'right))))
 #+end_src
 
 ** evil
@@ -222,7 +247,6 @@ Configure backup & auto save directories
 	   ("M-g i" . consult-imenu)
 	   ("M-g I" . consult-imenu-multi)
 	   ;; M-s bindings in `search-map'
-	   ("C-a" . project-find-file)
 	   ("M-s d" . consult-find)                  ;; Alternative: consult-fd
 	   ("M-s c" . consult-locate)
 	   ("M-s g" . consult-grep)
@@ -336,11 +360,11 @@ Configure backup & auto save directories
 
 ** marginalia config
 
-#+begin_src emacs-lisp :tangle "init.el"
-  (use-package marginalia
-    :ensure t
-    :init
-    (marginalia-mode))
+#+begin_src emacs-lisp :tangle "modules/marginalia.el"
+;;(use-package marginalia
+  ;;:ensure t
+  ;;:init
+  ;;(marginalia-mode))
 #+end_src
 
 ** orderless config
@@ -475,12 +499,29 @@ ty mr. Prot
   ;; - `ef-themes-preview-colors-current'
 #+end_src
 
+** Fonts
+
+Hi, Is this garamond?
+
+#+begin_src emacs-lisp :tangle "modules/fonts.el"
+(set-frame-font "Iosevka 14")
+;; (set-frame-font "Aporetic Sans Mono 14")
+;; (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))
+;; (fontaine-mode 1)
+;; (add-hook 'org-mode-hook 'variable-pitch-mode)
+;; (add-hook 'org-mode-hook 'visual-line-mode)
+;; (setq fontaine-presets
+;;       '((regular
+;; 	 :default-family "Aporetic Sans Mono"
+;; 	 ;; :variable-pitch-family "EB Garamond Regular"
+;; 	 :fixed-pitch-family "Aporetic Sans Mono"
+;; 	 :default-height 150)))
+#+end_src
 ** modes
 
 Some default emacs "ui" modes i'd like to disable
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
-(set-frame-font "Iosevka 14")
 ;; use git-gutter-mode
 (setq git-gutter-mode t)
 (setq git-gutter-fringe t)
@@ -512,7 +553,9 @@ org-mode face customizations
   (custom-set-faces
    `(flymake-error ((t :underline nil)))
    ;; `(flymake-warning ((t :underline nil)))
-   `(eldoc-box-body ((t :family "Iosevka" :height 120)))
+   `(eglot-highlight-symbol-face ((t :inherit 'underline :weight normal)))
+   ;; `(eldoc-box-body ((t :family "Iosevka" :height 120)))
+   `(eldoc-bo)
    `(eldoc-box-border ((t :background ,(face-attribute 'highlight :background))))
    `(line-number ((t (:background ,bg-color))))
    `(fringe ((t (:background ,bg-color))))))
@@ -524,15 +567,15 @@ org-mode face customizations
 Am i even using this?
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
-;; (use-package kind-icon
-;;   :ensure t
-;;   :after corfu
-;;   ;:custom
-;;   ; (kind-icon-blend-background t)
-;;   ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
-;;   :config
-;;   (setq kind-icon-use-icons nil)
-;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+(use-package kind-icon
+  :ensure t
+  :after corfu
+  ;:custom
+  ; (kind-icon-blend-background t)
+  ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+  :config
+  (setq kind-icon-use-icons nil)
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 * keybindings
@@ -542,6 +585,8 @@ Am i even using this?
 (global-set-key (kbd "C-<tab>") #'evil-switch-to-windows-last-buffer)
 (evil-global-set-key 'motion (kbd "K") 'eldoc-doc-buffer)
 (evil-global-set-key 'motion (kbd "\"") 'eldoc-box-quit-frame)
+(global-set-key (kbd "C-a") #'project-find-file)
+;; (global-set-key (kbd "C-o") #'eshell)
 #+end_src
 
 * misc

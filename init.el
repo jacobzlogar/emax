@@ -59,7 +59,6 @@
 	   ("M-g i" . consult-imenu)
 	   ("M-g I" . consult-imenu-multi)
 	   ;; M-s bindings in `search-map'
-	   ("C-a" . project-find-file)
 	   ("M-s d" . consult-find)                  ;; Alternative: consult-fd
 	   ("M-s c" . consult-locate)
 	   ("M-s g" . consult-grep)
@@ -129,11 +128,6 @@
     ;; You may want to use `embark-prefix-help-command' or which-key instead.
     ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
   )
-
-  (use-package marginalia
-    :ensure t
-    :init
-    (marginalia-mode))
 
 ;; Optionally use the `orderless' completion style.
 (use-package orderless

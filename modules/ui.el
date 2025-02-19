@@ -46,7 +46,6 @@
   ;; - `ef-themes-preview-colors'
   ;; - `ef-themes-preview-colors-current'
 
-(set-frame-font "Iosevka 14")
 ;; use git-gutter-mode
 (setq git-gutter-mode t)
 (setq git-gutter-fringe t)
@@ -69,17 +68,19 @@
   (custom-set-faces
    `(flymake-error ((t :underline nil)))
    ;; `(flymake-warning ((t :underline nil)))
-   `(eldoc-box-body ((t :family "Iosevka" :height 120)))
+   `(eglot-highlight-symbol-face ((t :inherit 'underline :weight normal)))
+   ;; `(eldoc-box-body ((t :family "Iosevka" :height 120)))
+   `(eldoc-bo)
    `(eldoc-box-border ((t :background ,(face-attribute 'highlight :background))))
    `(line-number ((t (:background ,bg-color))))
    `(fringe ((t (:background ,bg-color))))))
 
-;; (use-package kind-icon
-;;   :ensure t
-;;   :after corfu
-;;   ;:custom
-;;   ; (kind-icon-blend-background t)
-;;   ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
-;;   :config
-;;   (setq kind-icon-use-icons nil)
-;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+(use-package kind-icon
+  :ensure t
+  :after corfu
+  ;:custom
+  ; (kind-icon-blend-background t)
+  ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+  :config
+  (setq kind-icon-use-icons nil)
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
