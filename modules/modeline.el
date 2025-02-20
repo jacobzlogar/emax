@@ -36,7 +36,8 @@
 
 (defun modeline/eglot ()
   (if (eglot-managed-p)
-      (propertize "ᛇ" 'face 'shadow) ""))
+      (propertize "ᛥ" 'face 'shadow) ""))
+
 
 (setq-default mode-line-format
 	      '((:eval (modeline/padding modeline/symbol 'left))
