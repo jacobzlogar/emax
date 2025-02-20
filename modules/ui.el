@@ -7,7 +7,7 @@
   ;; can specify them in `ef-themes-to-toggle' and then invoke the command
   ;; `ef-themes-toggle'.  All the themes are included in the variable
   ;; `ef-themes-collection'.
-  ;; (setq ef-themes-to-toggle '(ef-summer ef-winter))
+  ;; (setq ef-themes-to-toggle '(ef-frost ef-symbiosis))
 
   ;; (setq ef-themes-headings ; read the manual's entry or the doc string
   ;; 	'((0 variable-pitch light 1.9)
@@ -31,7 +31,7 @@
   ;;(load-theme 'ef-night :no-confirm)
 
   ;; OR use this to load the theme which also calls `ef-themes-post-load-hook':
-  (ef-themes-select 'ef-symbiosis)
+  (ef-themes-select 'ef-duo-dark)
 
   ;; The themes we provide are recorded in the `ef-themes-dark-themes',
   ;; `ef-themes-light-themes'.
@@ -55,26 +55,27 @@
 (toggle-scroll-bar -1)
 (winner-mode 1)
 (setq blink-cursor-mode nil)
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
   (let ((bg-color (face-attribute 'menu :background))
-	(fg-color (face-attribute 'font-lock-comment-face :foreground)))
+	(fg-color (face-attribute 'default :foreground)))
     (custom-set-faces
      `(org-block-begin-line ((t (:foreground ,fg-color :background ,bg-color))))
      `(org-block-end-line ((t (:foreground ,fg-color :background ,bg-color))))))
 
 (setq max-mini-window-height 1)
+(set-fringe-style 20)
 (let ((bg-color (face-attribute 'default :background)))
   (custom-set-faces
    `(flymake-error ((t :underline nil)))
-   ;; `(flymake-warning ((t :underline nil)))
    `(eglot-highlight-symbol-face ((t :inherit 'underline :weight normal)))
-   ;; `(eldoc-box-body ((t :family "Iosevka" :height 120)))
-   `(eldoc-bo)
    `(eldoc-box-border ((t :background ,(face-attribute 'highlight :background))))
    `(line-number ((t (:background ,bg-color))))
    `(fringe ((t (:background ,bg-color))))))
 
+(use-package origami
+  :init
+  (global-origami-mode))
 (use-package kind-icon
   :ensure t
   :after corfu

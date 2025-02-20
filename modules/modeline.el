@@ -23,7 +23,7 @@
       (format "%s %s" (propertize "" 'face 'shadow) (vc-git--symbolic-ref (buffer-file-name))) ""))
 
 (defun modeline/mode ()
-  (symbol-name major-mode))
+  (format "%s %s" (nerd-icons-icon-for-file (buffer-file-name)) (symbol-name major-mode)))
 
 (defun modeline/padding (item &optional dir)
   (cond ((eq dir 'left) (format " %s" item))
@@ -32,19 +32,20 @@
 
 (defun modeline/divider ()
   (if (> (string-width (modeline/file) 0))
-      (propertize "|" 'face 'modeline/bold-shadow) ""))
+      (propertize "ᛥ" 'face 'modeline/bold-shadow) ""))
 
 (defun modeline/eglot ()
   (if (eglot-managed-p)
-      (propertize "ε" 'face 'modeline/bold-shadow) ""))
+      (propertize "ᛇ" 'face 'shadow) ""))
 
 (setq-default mode-line-format
 	      '((:eval (modeline/padding modeline/symbol 'left))
 		(:eval (modeline/padding (modeline/project) 'left))
-		(:eval (modeline/padding (modeline/divider) 'left))
+		;;(:eval (modeline/padding (modeline/divider) 'left))
 		(:eval (modeline/padding (modeline/file) 'left))
 		(:eval (modeline/padding (modeline/vcs) 'left))
-		"%+"
+		(:eval (propertize "%+" 'face 'shadow))
+		" Line: %l"
 		(:eval (modeline/padding (modeline/eglot) 'left))
 		(:eval (propertize
 			" " 'display

@@ -15,6 +15,7 @@
 (require 'eldoc-box)
 (require 'project)
 (evil-mode)
+;;(evil-collection-init)
 (vertico-mode)
 (corfu-mode)
 (global-corfu-mode)

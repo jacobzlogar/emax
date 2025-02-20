@@ -30,6 +30,7 @@ I just prefer this for now, load times are fast
 (require 'eldoc-box)
 (require 'project)
 (evil-mode)
+;;(evil-collection-init)
 (vertico-mode)
 (corfu-mode)
 (global-corfu-mode)
@@ -56,26 +57,57 @@ Bootstrap ~package.el~ and ~use-package~
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 #+end_src
 
-Setup some modes
+Setup some modes & some configurations
+
 #+begin_src emacs-lisp :tangle "init.el"
 (electric-pair-mode)
+(toggle-truncate-lines 1)
 (smartparens-mode)
 (add-to-list 'major-mode-remap-alist
 	     '(rustic-mode . rust-ts-mode)
 	     '(typescript-mode . typescript-ts-mode))
+(setq warning-minimum-level :emergency)
 #+end_src
 
 Configure backup & auto save directories
+
 #+begin_src emacs-lisp :tangle "init.el"
 (setq delete-auto-save-files t)
 (setq create-lockfiles nil)
 (setq backup-directory-alist
       '(("." . "~/.emacs.d/backups")))
-;; (setq auto-save-file-name-transforms
-;;       `(("." "~/.emacs.d/autosaves/" t)))
+(setq auto-save-file-name-transforms
+      `((".*" ,(expand-file-name "~/tmp/emacs-autosaves/") t)))
+#+end_src
+
+This is disgusting
+
+#+begin_src emacs-lisp :tangle "init.el"
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+	       '(vue-mode . ("vue-language-server" "--stdio"
+			     :initializationOptions (:vue (:hybridMode :json-false)
+							  :typescript (:tsdk "/home/jacob/.nvm/versions/node/v22.14.0/lib/node_modules/typescript/lib"))))))
 #+end_src
 
 * packages
+
+** spacious-padding
+
+#+begin_src emacs-lisp :tangle "modules/evil-collection.el"
+(use-package evil-collection
+  :init
+  (evil-collection-mode))
+#+end_src
+
+
+** spacious-padding
+
+#+begin_src emacs-lisp :tangle "modules/spacious-padding.el"
+(use-package spacious-padding
+  :init
+  (spacious-padding-mode))
+#+end_src
 
 ** dape-mode
 #+begin_src emacs-lisp :tangle "modules/dape.el"
@@ -115,7 +147,7 @@ Configure backup & auto save directories
       (format "%s %s" (propertize "" 'face 'shadow) (vc-git--symbolic-ref (buffer-file-name))) ""))
 
 (defun modeline/mode ()
-  (symbol-name major-mode))
+  (format "%s %s" (nerd-icons-icon-for-file (buffer-file-name)) (symbol-name major-mode)))
 
 (defun modeline/padding (item &optional dir)
   (cond ((eq dir 'left) (format " %s" item))
@@ -124,19 +156,20 @@ Configure backup & auto save directories
 
 (defun modeline/divider ()
   (if (> (string-width (modeline/file) 0))
-      (propertize "|" 'face 'modeline/bold-shadow) ""))
+      (propertize "ᛥ" 'face 'modeline/bold-shadow) ""))
 
 (defun modeline/eglot ()
   (if (eglot-managed-p)
-      (propertize "ε" 'face 'modeline/bold-shadow) ""))
+      (propertize "ᛇ" 'face 'shadow) ""))
 
 (setq-default mode-line-format
 	      '((:eval (modeline/padding modeline/symbol 'left))
 		(:eval (modeline/padding (modeline/project) 'left))
-		(:eval (modeline/padding (modeline/divider) 'left))
+		;;(:eval (modeline/padding (modeline/divider) 'left))
 		(:eval (modeline/padding (modeline/file) 'left))
 		(:eval (modeline/padding (modeline/vcs) 'left))
-		"%+"
+		(:eval (propertize "%+" 'face 'shadow))
+		" Line: %l"
 		(:eval (modeline/padding (modeline/eglot) 'left))
 		(:eval (propertize
 			" " 'display
@@ -459,7 +492,7 @@ ty mr. Prot
   ;; can specify them in `ef-themes-to-toggle' and then invoke the command
   ;; `ef-themes-toggle'.  All the themes are included in the variable
   ;; `ef-themes-collection'.
-  ;; (setq ef-themes-to-toggle '(ef-summer ef-winter))
+  ;; (setq ef-themes-to-toggle '(ef-frost ef-symbiosis))
 
   ;; (setq ef-themes-headings ; read the manual's entry or the doc string
   ;; 	'((0 variable-pitch light 1.9)
@@ -483,7 +516,7 @@ ty mr. Prot
   ;;(load-theme 'ef-night :no-confirm)
 
   ;; OR use this to load the theme which also calls `ef-themes-post-load-hook':
-  (ef-themes-select 'ef-symbiosis)
+  (ef-themes-select 'ef-duo-dark)
 
   ;; The themes we provide are recorded in the `ef-themes-dark-themes',
   ;; `ef-themes-light-themes'.
@@ -531,7 +564,7 @@ Some default emacs "ui" modes i'd like to disable
 (toggle-scroll-bar -1)
 (winner-mode 1)
 (setq blink-cursor-mode nil)
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 #+end_src
 
 ** org-mode
@@ -540,22 +573,21 @@ org-mode face customizations
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
   (let ((bg-color (face-attribute 'menu :background))
-	(fg-color (face-attribute 'font-lock-comment-face :foreground)))
+	(fg-color (face-attribute 'default :foreground)))
     (custom-set-faces
      `(org-block-begin-line ((t (:foreground ,fg-color :background ,bg-color))))
      `(org-block-end-line ((t (:foreground ,fg-color :background ,bg-color))))))
 #+end_src
 
 ** misc
+
 #+begin_src emacs-lisp :tangle "modules/ui.el"
 (setq max-mini-window-height 1)
+(set-fringe-style 20)
 (let ((bg-color (face-attribute 'default :background)))
   (custom-set-faces
    `(flymake-error ((t :underline nil)))
-   ;; `(flymake-warning ((t :underline nil)))
    `(eglot-highlight-symbol-face ((t :inherit 'underline :weight normal)))
-   ;; `(eldoc-box-body ((t :family "Iosevka" :height 120)))
-   `(eldoc-bo)
    `(eldoc-box-border ((t :background ,(face-attribute 'highlight :background))))
    `(line-number ((t (:background ,bg-color))))
    `(fringe ((t (:background ,bg-color))))))
@@ -567,6 +599,9 @@ org-mode face customizations
 Am i even using this?
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
+(use-package origami
+  :init
+  (global-origami-mode))
 (use-package kind-icon
   :ensure t
   :after corfu
@@ -644,7 +679,8 @@ I should move these into more specific sections
 #+end_src
 
 
-** web trash
+** 🤮 
+
 #+begin_src emacs-lisp :tangle "modules/vue.el"
 (define-derived-mode vue-mode web-mode "Vue Mode"
   "Major mode for .vue files"
@@ -652,4 +688,43 @@ I should move these into more specific sections
   (setq web-mode-script-padding 0))
 
 (add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-mode))
+#+end_src
+
+#+begin_src emacs-lisp
+(require 'json)
+
+(defvar spacetraders/account-token
+  (getenv "SPACETRADERS_ACCOUNT_TOKEN")
+  "The token used to manage your account? Agent? idgi")
+
+(setq spacetraders/api-key (getenv "SPACETRADERS_API_KEY"))
+
+(setq spacetraders/buffer (get-buffer-create "*The Spice Must Flow*"))
+
+(defun spacetraders/process ()
+  (make-network-process
+   :name "*The Spice Must Flow*"
+   :buffer spacetraders/buffer
+   :host "api.spacetraders.io"
+   :service "443"
+   :nowait t
+   :tls-parameters (list 'gnutls-x509pki
+                         :priority "NORMAL"
+                         :hostname "api.spacetraders.io")
+   :sentinel #'spacetraders/sentinel))
+
+(defun spacetraders/sentinel (proc output)
+  "Parse the jsons"
+  (insert output))
+
+(defun spacetraders/register (symbol faction)
+  "Register a new agent"
+  (let* ((json-body (json-encode (format "{\"symbol\": \"%s\", \"faction\": \"%s\"}" symbol faction)))
+         (content-length (length json-body))
+	 (process (spacetraders/open))
+         (request (format "POST /v2/register HTTP/1.1\r\nHost: api.spacetraders.io\r\nAuthorization: Bearer %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\n%s\r\n\r\n"
+                          spacetraders/api-key content-length json-body)))
+    (process-send-string process request)))
+
+(spacetraders/register "PEPSI" "COSMIC")
 #+end_src

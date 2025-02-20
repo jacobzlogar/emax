@@ -12,17 +12,25 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
 (electric-pair-mode)
+(toggle-truncate-lines 1)
 (smartparens-mode)
 (add-to-list 'major-mode-remap-alist
 	     '(rustic-mode . rust-ts-mode)
 	     '(typescript-mode . typescript-ts-mode))
+(setq warning-minimum-level :emergency)
 
 (setq delete-auto-save-files t)
 (setq create-lockfiles nil)
 (setq backup-directory-alist
       '(("." . "~/.emacs.d/backups")))
-;; (setq auto-save-file-name-transforms
-;;       `(("." "~/.emacs.d/autosaves/" t)))
+(setq auto-save-file-name-transforms
+      `((".*" ,(expand-file-name "~/tmp/emacs-autosaves/") t)))
+
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+	       '(vue-mode . ("vue-language-server" "--stdio"
+			     :initializationOptions (:vue (:hybridMode :json-false)
+							  :typescript (:tsdk "/home/jacob/.nvm/versions/node/v22.14.0/lib/node_modules/typescript/lib"))))))
 
   ;; Example configuration for Consult
   (use-package consult
