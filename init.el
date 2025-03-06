@@ -10,10 +10,14 @@
 (eval-when-compile
   (require 'use-package))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq use-package-always-ensure t)
 
 (electric-pair-mode)
-(toggle-truncate-lines 1)
 (smartparens-mode)
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+(add-hook 'typescript-ts-mode-hook 'eglot-ensure)
+(add-hook 'rust-ts-mode 'eglot-ensure)
+(add-hook 'vue-mode 'eglot-ensure)
 (add-to-list 'major-mode-remap-alist
 	     '(rustic-mode . rust-ts-mode)
 	     '(typescript-mode . typescript-ts-mode))
@@ -25,12 +29,6 @@
       '(("." . "~/.emacs.d/backups")))
 (setq auto-save-file-name-transforms
       `((".*" ,(expand-file-name "~/tmp/emacs-autosaves/") t)))
-
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-	       '(vue-mode . ("vue-language-server" "--stdio"
-			     :initializationOptions (:vue (:hybridMode :json-false)
-							  :typescript (:tsdk "/home/jacob/.nvm/versions/node/v22.14.0/lib/node_modules/typescript/lib"))))))
 
   ;; Example configuration for Consult
   (use-package consult
@@ -146,3 +144,13 @@
   (completion-styles '(orderless basic))
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion)))))
+
+(defun hex-to-binary (hex)
+  (let ((decimal (string-to-number hex 16)))
+    (if (= decimal 0)
+        "0"
+      (let ((binary ""))
+        (while (> decimal 0)
+          (setq binary (concat (if (= (% decimal 2) 0) "0" "1") binary))
+          (setq decimal (/ decimal 2)))
+        binary))))

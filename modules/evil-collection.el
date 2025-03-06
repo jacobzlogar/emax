@@ -1,3 +1,5 @@
 (use-package evil-collection
-  :init
-  (evil-collection-mode))
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))

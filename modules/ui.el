@@ -47,6 +47,7 @@
   ;; - `ef-themes-preview-colors-current'
 
 ;; use git-gutter-mode
+(setq auto-fill-width 80)
 (setq git-gutter-mode t)
 (setq git-gutter-fringe t)
 (which-key-mode 1)
@@ -55,13 +56,22 @@
 (toggle-scroll-bar -1)
 (winner-mode 1)
 (setq blink-cursor-mode nil)
-;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'prog-mode-hook (lambda () (set-fringe-style 20)))
+;; (add-hook 'prog-mode-hook (setq fringe-mode 20))
+(add-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'prog-mode-hook 'toggle-truncate-lines)
 
-  (let ((bg-color (face-attribute 'menu :background))
-	(fg-color (face-attribute 'default :foreground)))
-    (custom-set-faces
-     `(org-block-begin-line ((t (:foreground ,fg-color :background ,bg-color))))
-     `(org-block-end-line ((t (:foreground ,fg-color :background ,bg-color))))))
+(set-face-attribute 'header-line nil
+ :background (face-background 'default)
+ :underline `(:color ,(face-background 'mode-line) :position t)
+ :box `(:color ,(face-background 'default) :line-width 4))
+
+(let ((bg-color (face-attribute 'menu :background))
+      (fg-color (face-attribute 'default :foreground)))
+  (custom-set-faces
+   `(org-block-begin-line ((t (:foreground ,fg-color :background ,bg-color))))
+   `(org-block-end-line ((t (:foreground ,fg-color :background ,bg-color))))))
 
 (setq max-mini-window-height 1)
 (set-fringe-style 20)

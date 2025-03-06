@@ -30,7 +30,6 @@ I just prefer this for now, load times are fast
 (require 'eldoc-box)
 (require 'project)
 (evil-mode)
-;;(evil-collection-init)
 (vertico-mode)
 (corfu-mode)
 (global-corfu-mode)
@@ -55,14 +54,18 @@ Bootstrap ~package.el~ and ~use-package~
 (eval-when-compile
   (require 'use-package))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq use-package-always-ensure t)
 #+end_src
 
 Setup some modes & some configurations
 
 #+begin_src emacs-lisp :tangle "init.el"
 (electric-pair-mode)
-(toggle-truncate-lines 1)
 (smartparens-mode)
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+(add-hook 'typescript-ts-mode-hook 'eglot-ensure)
+(add-hook 'rust-ts-mode 'eglot-ensure)
+(add-hook 'vue-mode 'eglot-ensure)
 (add-to-list 'major-mode-remap-alist
 	     '(rustic-mode . rust-ts-mode)
 	     '(typescript-mode . typescript-ts-mode))
@@ -80,24 +83,37 @@ Configure backup & auto save directories
       `((".*" ,(expand-file-name "~/tmp/emacs-autosaves/") t)))
 #+end_src
 
-This is disgusting
-
-#+begin_src emacs-lisp :tangle "init.el"
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs
-	       '(vue-mode . ("vue-language-server" "--stdio"
-			     :initializationOptions (:vue (:hybridMode :json-false)
-							  :typescript (:tsdk "/home/jacob/.nvm/versions/node/v22.14.0/lib/node_modules/typescript/lib"))))))
-#+end_src
-
 * packages
+
+** git-gutter
+
+https://ianyepan.github.io/posts/emacs-git-gutter/
+
+#+begin_src emacs-lisp :tangle "modules/git-gutter.el"
+(use-package git-gutter
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
+
+(use-package git-gutter-fringe
+  :config
+  (set-face-attribute 'git-gutter-fr:added nil :background nil)
+  (set-face-attribute 'git-gutter-fr:modified nil :background nil)
+  (set-face-attribute 'git-gutter-fr:deleted nil :background nil)
+  (define-fringe-bitmap 'git-gutter-fr:added [24 24 24 255 24 24 24] nil nil 'center)
+  (define-fringe-bitmap 'git-gutter-fr:modified [24 24 24 24 24 24 24 24 0 24 24 24] nil nil 'center)
+  (define-fringe-bitmap 'git-gutter-fr:deleted [129 66 36 24 36 66 129] nil nil 'center))
+
+#+end_src
 
 ** evil-collection
 
 #+begin_src emacs-lisp :tangle "modules/evil-collection.el"
 (use-package evil-collection
-  :init
-  (evil-collection-mode))
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
 #+end_src
 
 
@@ -111,17 +127,14 @@ This is disgusting
 
 ** dape-mode
 #+begin_src emacs-lisp :tangle "modules/dape.el"
-;; (setq dape-adapter-dir "~/.emacs.d/debug-adapters/")
-;; (defun dape-jest/find-file-buffer-default ()
-;;   "Read filename at project root, defaulting to current buffer. Return vector of jest args to run said file"
-;;   (let ((file (dape-buffer-default)))
-;;     (if file
-;;         `["--runInBand" "--no-coverage" ,file]
-;;       (user-error "No file found"))))
+(use-package dape)
 #+end_src
 
 ** modeline
 #+begin_src emacs-lisp :tangle "modules/modeline.el"
+(setq flymake-modeline-counter-format '(flymake-mode-line-error-counter flymake-mode-line-warning-counter
+ flymake-mode-line-note-counter))
+
 (setq mode-line-format nil)
 (kill-local-variable 'mode-line-format)
 (force-mode-line-update)
@@ -131,52 +144,53 @@ This is disgusting
   "Face for bold+shadow")
 
 (defvar modeline/symbol
-  (propertize "λ" 'face 'modeline/bold-shadow))
+  (propertize "λ" 'face '(:background ,(face-background 'mode-line) :inherit 'bold)))
 
 (put 'modeline/symbol 'risky-local-variable-p t)
 
 (defun modeline/file ()
-  (file-relative-name buffer-file-name (project-root (project-current))))
+  (if (and (consp (project-current)) (buffer-file-name))
+      (file-relative-name buffer-file-name (project-root (project-current))) (buffer-name)))
 
 (defun modeline/project ()
   (if (project-current)
       (propertize (project-name (project-current)) 'face 'bold) ""))
 
 (defun modeline/vcs ()
-  (if (project-current)
+  (if (and (project-current) (mode-line-window-selected-p))
       (format "%s %s" (propertize "" 'face 'shadow) (vc-git--symbolic-ref (buffer-file-name))) ""))
 
 (defun modeline/mode ()
-  (format "%s %s" (nerd-icons-icon-for-file (buffer-file-name)) (symbol-name major-mode)))
+  (format "%s %s" (propertize
+		   (symbol-name major-mode)
+		   'face 'modeline/bold-shadow)
+		   (nerd-icons-icon-for-file buffer-file-name)))
 
 (defun modeline/padding (item &optional dir)
   (cond ((eq dir 'left) (format " %s" item))
         ((eq dir 'right) (format "%s " item))
         (t (format "%s" item))))
 
-(defun modeline/divider ()
-  (if (> (string-width (modeline/file) 0))
-      (propertize "ᛥ" 'face 'modeline/bold-shadow) ""))
-
 (defun modeline/eglot ()
   (if (eglot-managed-p)
-      (propertize "ᛥ" 'face 'shadow) ""))
-
+      (propertize "ᛥ" 'face '(:foreground "green")) ""))
 
 (setq-default mode-line-format
-	      '((:eval (modeline/padding modeline/symbol 'left))
-		(:eval (modeline/padding (modeline/project) 'left))
-		;;(:eval (modeline/padding (modeline/divider) 'left))
-		(:eval (modeline/padding (modeline/file) 'left))
-		(:eval (modeline/padding (modeline/vcs) 'left))
-		(:eval (propertize "%+" 'face 'shadow))
+	      '((:eval (modeline/padding (modeline/project) 'left))
+		vc-mode
+		(:eval (propertize "%+" 'face 'modeline/bold-shadow))
 		" Line: %l"
 		(:eval (modeline/padding (modeline/eglot) 'left))
+		(flymake-mode-line-exception flymake-mode-line-counters)
 		(:eval (propertize
 			" " 'display
 			`((space :align-to (- (+ right right-fringe right-margin)
 					      ,(+ 2 (string-width (modeline/mode))))))))
 		(:eval (modeline/padding (modeline/mode) 'right))))
+
+(setq-default header-line-format
+	      '((:eval (if (mode-line-window-selected-p) (modeline/padding modeline/symbol 'left)))
+		(:eval (if (mode-line-window-selected-p) (modeline/padding (modeline/file) 'left)))))
 #+end_src
 
 ** evil
@@ -557,6 +571,7 @@ Some default emacs "ui" modes i'd like to disable
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
 ;; use git-gutter-mode
+(setq auto-fill-width 80)
 (setq git-gutter-mode t)
 (setq git-gutter-fringe t)
 (which-key-mode 1)
@@ -565,7 +580,11 @@ Some default emacs "ui" modes i'd like to disable
 (toggle-scroll-bar -1)
 (winner-mode 1)
 (setq blink-cursor-mode nil)
-;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'prog-mode-hook (lambda () (set-fringe-style 20)))
+;; (add-hook 'prog-mode-hook (setq fringe-mode 20))
+(add-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'prog-mode-hook 'toggle-truncate-lines)
 #+end_src
 
 ** org-mode
@@ -573,11 +592,16 @@ Some default emacs "ui" modes i'd like to disable
 org-mode face customizations
 
 #+begin_src emacs-lisp :tangle "modules/ui.el"
-  (let ((bg-color (face-attribute 'menu :background))
-	(fg-color (face-attribute 'default :foreground)))
-    (custom-set-faces
-     `(org-block-begin-line ((t (:foreground ,fg-color :background ,bg-color))))
-     `(org-block-end-line ((t (:foreground ,fg-color :background ,bg-color))))))
+(set-face-attribute 'header-line nil
+ :background (face-background 'default)
+ :underline `(:color ,(face-background 'mode-line) :position t)
+ :box `(:color ,(face-background 'default) :line-width 4))
+
+(let ((bg-color (face-attribute 'menu :background))
+      (fg-color (face-attribute 'default :foreground)))
+  (custom-set-faces
+   `(org-block-begin-line ((t (:foreground ,fg-color :background ,bg-color))))
+   `(org-block-end-line ((t (:foreground ,fg-color :background ,bg-color))))))
 #+end_src
 
 ** misc
@@ -679,13 +703,11 @@ I should move these into more specific sections
 (setq org-html-postamble-format '(("en" "<p class=\"author\">%a (%e) </p>")))
 #+end_src
 
-
-** 🤮 
-
 #+begin_src emacs-lisp :tangle "modules/vue.el"
 (define-derived-mode vue-mode web-mode "Vue Mode"
   "Major mode for .vue files"
   (setq web-mode-code-indent-offset 2)
+  (setq web-mode-enable-auto-pairing nil)
   (setq web-mode-script-padding 0))
 
 (add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-mode))
@@ -728,4 +750,16 @@ I should move these into more specific sections
     (process-send-string process request)))
 
 (spacetraders/register "PEPSI" "COSMIC")
+#+end_src
+
+#+begin_src emacs-lisp :tangle "init.el"
+(defun hex-to-binary (hex)
+  (let ((decimal (string-to-number hex 16)))
+    (if (= decimal 0)
+        "0"
+      (let ((binary ""))
+        (while (> decimal 0)
+          (setq binary (concat (if (= (% decimal 2) 0) "0" "1") binary))
+          (setq decimal (/ decimal 2)))
+        binary))))
 #+end_src
